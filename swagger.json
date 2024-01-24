@@ -1,0 +1,472 @@
+{
+    "openapi":"3.0.0",
+    "info":{
+        "version":"1.0.0",
+        "description":"API for Postway",
+        "title":"Postway"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000"
+        }
+    ],
+    "components": {
+        "securitySchemes": {
+            "JWT" : {
+                "in": "header",
+                "name": "Authorization",
+                "type": "apiKey"
+            }
+        }
+    },
+    "paths":{
+        "/api/signin": {
+            "post":{
+                "tags": ["Users"],
+                "summary":"Login",
+                "description":"User login to get token",
+                "requestBody":{
+                    "content": {
+                       "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email":{
+                                        "type": "string"
+                                    },
+                                    "password":{
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                       }
+                    }
+                },
+                "responses":{
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Incorrect Credentials"
+                    }
+                }
+            }
+        },
+        "/api/signup": {
+            "post":{
+                "tags": ["Users"],
+                "summary":"Register",
+                "description":"Returns newly created user object",
+                "requestBody":{
+                    "content": {
+                       "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name":{
+                                        "type": "string"
+                                    },
+                                    "email":{
+                                        "type": "string"
+                                    },
+                                    "password":{
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                       }
+                    }
+                },
+                "responses":{
+                    "201": {
+                        "description": "Account created"
+                    },
+                    "400": {
+                        "description": "Incorrect data"
+                    }
+                }
+            }
+        },
+        "/api/posts/": {
+            "post": {
+                "tags": [
+                    "Posts"
+                ],
+                "summary": "Create a new post",
+                "description": "Creates a new post with a caption and an image.",
+                "security": [
+                    {
+                        "JWT": {}
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "caption": {
+                                        "type": "string",
+                                        "description": "Caption for the post"
+                                    },
+                                    "imageURL": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "Image file for the post"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Newly Created Post Object"
+                    },
+                    "401": {
+                        "description": "Unauthorized Access"
+                    },
+                    "404": {
+                        "description": "Invalid user id"
+                    }
+                }
+            }
+        },
+        "/api/posts/all": {
+            "get":{
+                "tags": ["Posts"],
+                "summary":"Get all posts",
+                "description":"Returns all the posts",
+                "security": [
+                    { "JWT": {} }
+                ],
+                "responses":{
+                    "200": {
+                        "description":"OK"
+                    }
+                }
+            }
+        },
+
+        "/api/posts/{ID}": {
+            "get": {
+                "tags": ["Posts"],
+                "summary": "Get a specific post By ID",
+                "parameters": [
+                    {
+                        "name": "ID",
+                        "in": "path",
+                        "required": true,
+                        "description": "Enter the post id"
+                    }
+                ],
+                "description": "Takes the post id as url parameters and returns the post with the specific post id.",
+                "security": [
+                    {
+                        "JWT": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post data"
+                    },
+                    "404": {
+                        "description": "Post Not Found"
+                    },
+                    "401": {
+                        "description": "Unauthorized Access"
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Posts"],
+                "summary": "Delete post by ID",
+                "parameters": [
+                    {
+                        "name": "ID",
+                        "in": "path",
+                        "required": true,
+                        "description": "Enter the post id"
+                    }
+                ],
+                "description": "Takes the post id as url parameters and deletes the specific post id.",
+                "security": [
+                    {
+                        "JWT": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns deleted post data"
+                    },
+                    "404": {
+                        "description": "Post Not Found"
+                    },
+                    "401": {
+                        "description": "Unauthorized Access"
+                    }
+                }
+            },
+            "put": {
+                "tags": ["Posts"],
+                "summary": "Update a post",
+                "parameters": [
+                    {
+                        "name": "ID",
+                        "in": "path",
+                        "required": true,
+                        "description": "Enter the post id"
+                    }
+                ],
+                "description": "Takes the post ID as URL parameter and returns the updated post object.",
+                "security": [
+                    {
+                        "JWT": {}
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "caption": {
+                                        "type": "string",
+                                        "description": "Caption for the post"
+                                    },
+                                    "imageURL": {
+                                        "type": "string",
+                                        "format": "binary",
+                                        "description": "Image file for the post"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Updated Post Object"
+                    },
+                    "404": {
+                        "description": "Post Not Found"
+                    },
+                    "401": {
+                        "description": "Unauthorized Access"
+                    }
+                }
+            }
+        },
+        "/api/comments/{ID}": {
+            "post": {
+                "tags": ["Comments"],
+                "summary": "Add a comment for specific post",
+                "parameters": [
+                    {
+                        "name": "ID",
+                        "in": "path",
+                        "required": true,
+                        "description": "Enter the post id"
+                    }
+                ],
+                "description": "Takes the post ID as URL parameter and returns the newly created comment object.",
+                "security": [
+                    {
+                        "JWT": {}
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "content": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Newly Created Comment Object"
+                    },
+                    "404": {
+                        "description": "Post Not Found"
+                    },
+                    "401": {
+                        "description": "Unauthorized Access"
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["Comments"],
+                "summary": "Delete a comment by id",
+                "parameters": [
+                    {
+                        "name": "ID",
+                        "in": "path",
+                        "required": true,
+                        "description": "Enter the comment id"
+                    }
+                ],
+                "description": "Takes the comment id as url parameters and deletes the comment.",
+                "security": [
+                    {
+                        "JWT": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns deleted comment object"
+                    },
+                    "404": {
+                        "description": "Comment Not Found"
+                    },
+                    "401": {
+                        "description": "Unauthorized Access"
+                    }
+                }
+            },
+            "put": {
+                "tags": ["Comments"],
+                "summary": "Update a comment by id",
+                "parameters": [
+                    {
+                        "name": "ID",
+                        "in": "path",
+                        "required": true,
+                        "description": "Enter the comment id"
+                    }
+                ],
+                "description": "Takes the comment ID as URL parameter and returns the updated comment object.",
+                "security": [
+                    {
+                        "JWT": {}
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "content": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Updated Comment Object."
+                    },
+                    "404": {
+                        "description": "Comment Not Found"
+                    },
+                    "401": {
+                        "description": "Unauthorized Access"
+                    }
+                }
+            },
+            "get": {
+                "tags": ["Comments"],
+                "summary": "Get all comments of a specific post",
+                "parameters": [
+                    {
+                        "name": "ID",
+                        "in": "path",
+                        "required": true,
+                        "description": "Enter the post id"
+                    }
+                ],
+                "description": "Takes the post id as url parameters and returns the comments for the specific post.",
+                "security": [
+                    {
+                        "JWT": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comment With Post ID"
+                    },
+                    "404": {
+                        "description": "Comments Not Found"
+                    },
+                    "401": {
+                        "description": "Unauthorized Access"
+                    }
+                }
+            }
+        },
+        "/api/likes/{ID}": {
+            "get": {
+                "tags": ["Likes"],
+                "summary": "Get likes of a specific post",
+                "parameters": [
+                    {
+                        "name": "ID",
+                        "in": "path",
+                        "required": true,
+                        "description": "Enter The Post ID"
+                    }
+                ],
+                "description": "Takes the post/comment id as url parameters and returns the likes for the specific post/comment.",
+                "security": [
+                    {
+                        "JWT": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Likes With Post ID"
+                    },
+                    "404": {
+                        "description": "Data Not Found"
+                    },
+                    "401": {
+                        "description": "Unauthorized Access"
+                    }
+                }
+            }
+        },
+        "/api/likes/toggle/{ID}": {
+            "get": {
+                "tags": ["Likes"],
+                "summary": "Likes And Unlikes A Specific Post",
+                "description": "Toggles the like status for a specific post based on ID",
+                "parameters": [
+                    {
+                        "name": "ID",
+                        "in": "path",
+                        "required": true,
+                        "description": "Enter the Post ID"
+                    }
+                ],
+                "security": [
+                    {
+                        "JWT": []
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Post Successfully Unliked"
+                    },
+                    "500": {
+                        "description": "Failed To Process Like/Unlike Operations"
+                    },
+                    "401": {
+                        "description": "Unauthorized Access"
+                    },
+                    "404": {
+                        "description": "Post/Comment Not Found"
+                    }
+                }
+            }
+        }
+    }
+}
