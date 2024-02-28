@@ -1,81 +1,194 @@
-import UserModel from "../user/user.model.js"
-import PostModel from "./post.model.js"
-
 import moment from "moment"
+import PostRepository from "./post.repository.js"
+import UserRepository from "../user/user.repository.js"
+import { ApplicationError } from "../../errorHandler/applicationError.js"
 
 export default class PostController {
 
-    async add(req, res) {
+    constructor() {
+        this.postRepository = new PostRepository()
+        this.userRepository = new UserRepository()
+    }
+
+    async add(req, res, next) {
         const { caption } = req.body
         const userId = req.userId
 
         const imageUrl = "images/" + req.file.filename
-        const timeStamp = moment().format('DD MMM YYYY hh:mm A')
+        const timestamp = moment().format('DD MMM YYYY hh:mm A')
 
-        const userExists = UserModel.get(userId);
+        const userExists = await this.userRepository.getSingleUser(userId);
 
-        if(userExists) {
-            const newPost = PostModel.add(userId, caption, imageUrl, timeStamp)
-            res.status(201).send({ message: 'Post added!', postData: newPost})
-        } else {
-            return res.status(404).send({ error: 'Invalid user id' });
-        }
+        // add only if user exists
+        if(userExists.success) {
 
-    }
+            const response = await this.postRepository.add({userId, caption, imageUrl, timestamp})
 
-    getAll(req, res) {
-        const posts = PostModel.getAll();
-        res.status(200).send({ posts: posts });
-    }
-
-    getById(req, res) {
-        const post = PostModel.getById(req.params.id)
-        if(!post) {
-            return res.status(404).send({ error: 'Post not found' });
-        }
-        return res.status(200).send({ postData: post });
-    }
-
-    getByUser(req, res) {
-        const userId = req.userId
-        const post = PostModel.getByUser(userId)
-        if(!post) {
-            return res.status(404).send({ error: 'Post not found' });
-        }
-        return res.status(200).send({ postData: post });
-    }
-
-    delete(req, res) {
-        const userId = req.userId
-        const postId = req.params.id
-
-        const deletedPost = PostModel.delete(postId, userId)
-        if(deletedPost != null) {
-            return res.status(200).send({ message: 'Post deleted successfully', deletedPost: deletedPost })
-        } else {
-            return res.status(404).send({error: 'Post not found'});
-        }
-    }
-
-    update(req, res) {
-        const postObj = {
-            id: Number(req.params.id),
-            userId: req.userId, 
-            caption: req.body.caption,
-            imageUrl: "images/" + req.file.filename,
-            timestamp: moment().format('DD MMM YYYY hh:mm A')
-        }
-        // console.log(postObj)
-        const userExists = UserModel.get(req.userId);
-        if(userExists) {
-            const updatedPost = PostModel.update(postObj)
-            if(updatedPost != null) {
-                return res.status(200).send({ message: 'Post updated successfully', updatedPost: updatedPost })
+            if(response.success) {
+                res.status(201).send({ 
+                    success: true,
+                    message: 'Post added successfully', 
+                    response: response.res 
+                })
             } else {
-                return res.status(404).send({error: 'Post not found'});
+                throw new ApplicationError(response.error.message, response.error.statusCode)
             }
+        
         } else {
-            return res.status(404).send({ error: 'Invalid user id' });
+            // return res.status(404).send({ error: 'Invalid user id' });
+            throw new ApplicationError(userExists.error.msg, userExists.error.statusCode)
+        }
+
+    }
+
+    async getAll(req, res, next) {
+        try {
+            const response = await this.postRepository.getAll()
+            if(response.success) {
+                
+                if(response.res.length > 0) {
+                    return res.status(200).send({ 
+                        success: true,
+                        message: 'All posts', 
+                        posts: response.res,  
+                    })
+                } else {
+                    return res.status(404).send({ 
+                        success: false,
+                        message: 'No posts found', 
+                        posts: response.res,  
+                    })
+                }
+                
+            } else {
+                throw new ApplicationError(response.error.message, response.error.statusCode)
+            }
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    async getById(req, res, next) {
+        try {
+            const response = await this.postRepository.getById(req.params.postId)
+            
+            if(response.success) {
+                
+                if(response.res) {
+                    return res.status(200).send({ 
+                        success: true,
+                        message: 'Fetched post data successfully', 
+                        post: response.res,  
+                    })
+                } else {
+                    return res.status(404).send({ 
+                        success: false,
+                        message: 'No post found', 
+                        post: response.res,  
+                    })
+                }
+                
+            } else {
+                throw new ApplicationError(response.error.message, response.error.statusCode)
+            }
+
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    async getByUser(req, res, next) {
+        try {
+            const response = await this.postRepository.getByUser(req.userId)
+            if(response.success) {
+                
+                if(response.res.length > 0) {
+                    return res.status(200).send({ 
+                        success: true,
+                        message: 'all posts', 
+                        posts: response.res,  
+                    })
+                } else {
+                    return res.status(404).send({ 
+                        success: false,
+                        message: 'no posts found', 
+                        posts: response.res,  
+                    })
+                }
+                
+            } else {
+                throw new ApplicationError(response.error.message, response.error.statusCode)
+            }
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    async delete(req, res, next) {
+        const userId = req.userId
+        const postId = req.params.postId
+
+        try {
+            const response = await this.postRepository.delete(postId, userId)
+            if(response.success) {
+                
+                if(response.res == null) {
+                    return res.status(404).send({ 
+                        success: false,
+                        message: 'Post not found', 
+                        post: response.res,  
+                    })
+                } else {
+                    return res.status(200).send({ 
+                        success: true,
+                        message: 'Post deleted', 
+                        deletedPost: response.res,  
+                    })
+                }
+            }
+            else {
+                throw new ApplicationError(response.error.message, response.error.statusCode)
+            }
+
+        } catch (error) {
+            next(error)
+        }
+    }
+
+    async update(req, res, next) {
+        
+        try {
+            const postObj = {
+                _id: req.params.postId,
+                userId: req.userId, 
+                caption: req.body.caption,
+                imageUrl: "images/" + req.file.filename,
+                timestamp: moment().format('DD MMM YYYY hh:mm A')
+            }
+
+            const response = await this.postRepository.update(postObj)
+            if(response.success) {
+
+                if(response.res == null) {
+                    return res.status(404).send({ 
+                        success: false,
+                        message: 'Post not found', 
+                        post: response.res,  
+                    })
+                } else {
+                    return res.status(200).send({ 
+                        success: true,
+                        message: 'Post updated successfully', 
+                        updatedPost: response.res 
+                    })
+                }
+
+                
+            } else {
+                throw new ApplicationError(response.error.msg, response.error.statusCode)
+            }
+        } catch (error) {
+            next(error)
         }
     }
 }

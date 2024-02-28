@@ -14,7 +14,6 @@ const validateSignUpRequest = async (req, res, next) => {
 
     if(!validationErrors.isEmpty()) {
         return res.status(400).json({ error: validationErrors.array()[0].msg });
-        // throw new ApplicationError(validationErrors.array()[0].msg, 403)
     }
     next();
 }
@@ -31,7 +30,6 @@ const validateSignInRequest = async (req, res, next) => {
 
     if(!validationErrors.isEmpty()) {
         return res.status(403).json({ error: validationErrors.array()[0].msg });
-        // throw new ApplicationError(validationErrors.array()[0].msg, 403)
     }
     next();
 }
