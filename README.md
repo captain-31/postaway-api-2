@@ -115,7 +115,7 @@ PostAway is REST API of social media platform. This REST API provides user to po
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/postaway-api.git
+git clone https://github.com/captain-31/postaway-api-2.git
 cd postaway-api
 ```
 
